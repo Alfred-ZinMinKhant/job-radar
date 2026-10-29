@@ -1,0 +1,39 @@
+# ENABLED. Note: GitHub runner IPs are often blocked by LinkedIn and Indeed, so
+# a run here may come back with fewer results than a run from your own machine;
+# blocked sources are named in the digest footer. To switch it off, add
+# `if: false` under the job (see README).
+#
+# Needed repository secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+# and CONFIG_LOCAL (the full contents of config.local.yaml).
+name: job-radar
+on:
+  schedule:
+    - cron: "30 1 * * *"   # 08:30 Asia/Bangkok (UTC+7)
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency: job-radar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Restore database
+        uses: actions/cache@v4
+        with:
+          path: data/jobs.db
+          key: jobs-db-${{ github.run_id }}
+          restore-keys: jobs-db-
+      - name: Write private profile
+        env:
+          CONFIG_LOCAL: ${{ secrets.CONFIG_LOCAL }}
+        run: printf '%s' "$CONFIG_LOCAL" > config.local.yaml
+      - name: Run
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m jobradar run

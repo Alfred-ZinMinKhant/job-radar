@@ -1,0 +1,107 @@
+# job-radar configuration. Everything scoring-related is tunable here.
+
+# The personal `profile` section lives in config.local.yaml (gitignored) so this repo can be public.
+
+notify:
+  min_score: 30          # only jobs at or above this score are sent
+  top_n: 25              # digest shows the best N
+  quiet_ping_days: 7     # "all quiet" message at most this often
+  worth_a_try:           # role/language fits but held back by degree or experience
+    enabled: true
+    min_score: 0         # raw score floor
+    max: 5               # at most this many per digest
+
+scoring:
+  min_salary: 15000      # THB/month; used by the low_salary rule
+
+  target_role:           # matched against the TITLE only
+    points: 30
+    terms: [receptionist, front desk, front office, guest service, guest relations,
+            customer service, customer support, customer care, admin assistant,
+            ผู้ช่วยธุรการ, ธุรการ, พนักงานต้อนรับ, ฝ่ายบริการลูกค้า, ผู้ช่วยครู,
+            learning support, teaching assistant, ต้อนรับ, ส่วนหน้า]
+  burmese:
+    points: 25
+    terms: [burmese, myanmar language, ภาษาพม่า, ล่ามภาษาพม่า]
+  chinese:
+    points: 15
+    terms: [chinese speaking, chinese-speaking, chinese language, mandarin, ภาษาจีน, แมนดาริน, 中文, 汉语, 华语]
+  no_degree:
+    points: 25
+    terms: [ไม่จำกัดวุฒิ, ม.6, มัธยม, ปวช, ปวส, diploma, high school, no degree]
+  degree_required:       # skipped when a no_degree term is also present
+    points: -40
+    terms: [bachelor, ปริญญาตรี, degree required]
+  degree_equivalent:     # replaces degree_required when present
+    points: -10
+    terms: [or equivalent, หรือเทียบเท่า, any field]
+  entry_level:
+    points: 10
+    terms: [fresher, fresh graduate, 0-1 year, ไม่มีประสบการณ์ก็ได้, ไม่ต้องมีประสบการณ์, no experience]
+  soft_requirement:      # in the same sentence as a degree/experience mention: penalty
+    points: -10          # drops to this instead of the full degree/experience penalty
+    terms: [preferred, is a plus, an advantage, advantageous, not required, not necessary,
+            training provided, will train, willing to learn, ไม่จำเป็น, มีอบรม, สอนงาน,
+            จะพิจารณาเป็นพิเศษ, ยินดีรับ]
+  experience_2plus:      # 2+ years stated near an "experience" word
+    points: -30
+    min_years: 2
+  experience_1yr:        # exactly 1 year stated
+    points: -10
+  experience_unspecified:  # "experience required" with no number
+    points: -10
+    terms: [มีประสบการณ์, experience required, required experience, experienced]
+  seniority:             # matched against the TITLE only
+    points: -50
+    terms: [manager, supervisor, head, director, senior, team lead, team leader, หัวหน้า, ผู้จัดการ]
+  nationality_mismatch:
+    points: -100
+    terms: [burmese nationality, myanmar nationality, สัญชาติพม่า]
+  low_salary:
+    points: -15
+  closed:                # any hit, or closes_at in the past, excludes the job
+    terms: [ปิดรับสมัคร, position closed, no longer accepting, job expired,
+            this job has expired, this position has been filled]
+
+sources:
+  enabled: [jobspy, hoteljob, jobbkk, jobthai]   # add careerlink once search_urls is set. fixtures | jobspy | hoteljob | careerlink | jobbkk | jobthai
+  fixtures:
+    path: tests/fixtures/jobs.json
+
+jobspy:
+  sites: [linkedin, indeed]     # Glassdoor does not support Thailand
+  location: Bangkok, Thailand
+  results_wanted: 30            # per query, per site
+  hours_old: 72                 # applied to LinkedIn by JobSpy, to Indeed by us (see source)
+  fetch_description: false      # LinkedIn only: +1 request per job, but better degree detection
+  sleep_between_queries: [20, 30]
+  retry_wait: 20                # seconds; exponential, 2 retries
+  queries:
+    - receptionist
+    - front desk
+    - guest service
+    - customer service
+    - customer support Burmese
+    - admin assistant
+    - ผู้ช่วยธุรการ
+    - พนักงานต้อนรับ
+    - ภาษาพม่า
+    - Chinese speaking receptionist
+    - ภาษาจีน
+    - teaching assistant
+
+hoteljob:
+  max_pages: 5                  # /bangkok/ pages, 20 jobs each, newest first
+  extra_title_terms: [guest, concierge, reservation, สำรองห้องพัก]  # besides scoring.target_role
+
+jobbkk:
+  max_pages: 1                  # 25 jobs per page per keyword
+  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, ภาษาจีน, front desk]   # Bangkok only (in the URL)
+
+jobthai:
+  max_pages: 1                  # 20 jobs per page per keyword
+  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, ภาษาจีน, front desk]   # Bangkok only (province id 01)
+
+careerlink:                     # UNVERIFIED adapter: CareerLink blocks Claude's crawlers, so it was built blind
+  max_jobs: 40
+  search_urls: []               # paste Bangkok + keyword search-result URLs from your own browser

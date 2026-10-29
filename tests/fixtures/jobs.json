@@ -1,0 +1,19 @@
+[
+  {"url": "https://example.test/hoteljob/position/1/", "title": "Front Office Crew (Night Shift)",
+   "company": "YOTEL Bangkok Sukhumvit (synthetic)", "location": "Sukhumvit", "salary_text": "15,001 - 20,000 THB",
+   "closes_at": "28 November 2569",
+   "description": "Night shift. Education: no degree requirement. Fluent English. Nationality: Thai. Age 20-40 years old. Experience: at least 1 year."},
+  {"url": "https://example.test/hoteljob/position/2/", "title": "Guest Service Officer, Front Office",
+   "company": "Grand Hyatt Erawan (synthetic)", "location": "Ratchaprasong", "salary_text": "Negotiable",
+   "closes_at": "26 November 2569",
+   "description": "Bachelor's degree. Age up to 30. Good English. No experience needed."},
+  {"url": "https://example.test/careerlink/job/sales-staff-burmese/1", "title": "Sales Staff (Burmese)",
+   "company": "Synthetic Trading Co.", "location": "Bangkok", "salary_text": "25,000 - 35,000",
+   "description": "Experience: 3+ years B2B sales. Bachelor's degree. Burmese nationality. Age 25-39 years."},
+  {"url": "https://example.test/clinic/1", "title": "ผู้ช่วยธุรการ",
+   "company": "Synthetic Clinic", "location": "Bangkok", "salary_text": "เงินเดือนเริ่มต้น 15,000 + ค่าคอมมิชชั่น",
+   "description": "วุฒิการศึกษา ม.6 ขึ้นไป"},
+  {"url": "https://example.test/clinic/2", "title": "Beauty Consultant (English Speaking)",
+   "company": "Synthetic Beauty Clinic", "location": "Bangkok", "salary_text": "",
+   "description": "ไม่จำกัดวุฒิการศึกษา มีประสบการณ์การทำงานเป็น Sales ในคลินิกเสริมความงามมาก่อน"}
+]
