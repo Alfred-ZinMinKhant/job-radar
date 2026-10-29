@@ -107,3 +107,44 @@ def test_careerlink_burmese_sales_example_is_strongly_negative(cfg):
     r = score_job(j, cfg, TODAY)
     assert j.title == "Sales Staff (Burmese)" and "menu" not in j.description
     assert r.score <= -100 and any("nationality" in x for x in r.reasons)
+
+
+# ---- jobtopgun
+
+def test_jobtopgun_list_cards_and_bangkok_flag():
+    from jobradar.sources import jobtopgun
+    items = jobtopgun.parse_list(read("jobtopgun_list.html"))
+    assert [i["id"] for i in items] == ["j21417-1139", "j279-1278", "j279-1274", "j279-1042"]
+    assert items[0]["title"] == "Call Center Inbound" and items[0]["bangkok"] and not items[3]["bangkok"]
+
+
+def test_jobtopgun_source_filters_then_fetches_detail(cfg):
+    from jobradar.sources import jobtopgun
+    pages = {jobtopgun.list_url("customer-service", 1): read("jobtopgun_list.html"),
+             "https://www.jobtopgun.com/th/jobs/j21417-1139": read("jobtopgun_detail.html")}
+    fake = Fake(pages)
+    src = jobtopgun.JobTopGunSource({"fields": ["customer-service"], "max_pages": 1}, ["call center"], client=fake)
+    jobs = src.fetch()
+    assert [j.url for j in jobs] == ["https://www.jobtopgun.com/th/jobs/j21417-1139"]
+    assert jobs[0].source == "jobtopgun" and jobs[0].location and jobs[0].description
+    assert len(fake.asked) == 2  # one list page + one matching, Bangkok card
+
+
+def test_jobtopgun_markup_change_is_loud():
+    from jobradar.sources import jobtopgun
+    with pytest.raises(ValueError):
+        jobtopgun.parse_list("<html></html>")
+
+
+def test_jobtopgun_blocked_is_reported():
+    from jobradar.sources import jobtopgun
+    src = jobtopgun.JobTopGunSource({"fields": ["administration"]}, ["admin"], client=Fake({jobtopgun.list_url("administration", 1): SourceBlocked("403")}))
+    with pytest.raises(SourceBlocked):
+        src.fetch()
+
+
+def test_jobtopgun_empty_later_page_ends_the_field(cfg):
+    from jobradar.sources import jobtopgun
+    pages = {jobtopgun.list_url("education", 1): read("jobtopgun_list.html"), jobtopgun.list_url("education", 2): "<html></html>"}
+    src = jobtopgun.JobTopGunSource({"fields": ["education"], "max_pages": 3}, ["zzz"], client=Fake(pages))
+    assert src.fetch() == []  # no title match, but page 2 being empty is not an error

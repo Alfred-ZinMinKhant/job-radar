@@ -36,7 +36,7 @@ python -m jobradar stats             # job counts and top scores
 python -m jobradar notify-test
 ```
 
-Sources: `jobspy` (LinkedIn, Indeed), `hoteljob`, `jobbkk`, `jobthai`, and
+Sources: `jobspy` (Indeed; LinkedIn is off because it blocks GitHub's servers), `hoteljob`, `jobbkk`, `jobthai`, `jobtopgun`, and
 `careerlink`. CareerLink is **unverified** (its robots.txt blocks Claude's
 crawlers, so it was built without live access). Paste Bangkok search-result URLs
 from your own browser into `careerlink.search_urls` in `config.yaml` and add
@@ -61,8 +61,8 @@ scheduled time. macOS cron ignores `CRON_TZ`, so there the Mac's own clock decid
 `.github/workflows/run.yml` runs daily at 08:30 Bangkok time (cron `30 1 * * *`
 UTC) and can be started by hand from the Actions tab. Repository secrets needed:
 `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` and `CONFIG_LOCAL` (the contents of
-`config.local.yaml`). GitHub runner IPs are often blocked by LinkedIn and
-Indeed, so those may come back empty; the digest footer names any source that
+`config.local.yaml`). GitHub runner IPs are often blocked by LinkedIn (hence off) and
+sometimes Indeed, so those may come back empty; the digest footer names any source that
 failed. The database is kept between runs with `actions/cache`, which can be
 evicted after 7 days without use, so old jobs might then be re-sent. To switch
 it off, add `if: false` under `run:` in the workflow. Don't run both cron and

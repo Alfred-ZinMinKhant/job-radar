@@ -36,6 +36,11 @@ def build_sources(cfg: dict, only: str | None = None) -> list[Source]:
         return JobThaiSource(cfg["jobthai"], _terms())
     registry["jobthai"] = jobthai
 
+    def jobtopgun():
+        from .jobtopgun import JobTopGunSource
+        return JobTopGunSource(cfg["jobtopgun"], _terms())
+    registry["jobtopgun"] = jobtopgun
+
     def careerlink():
         from .careerlink import CareerLinkSource
         if not cfg["careerlink"].get("search_urls"):

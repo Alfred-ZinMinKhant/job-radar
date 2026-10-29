@@ -64,12 +64,12 @@ scoring:
             this job has expired, this position has been filled]
 
 sources:
-  enabled: [jobspy, hoteljob, jobbkk, jobthai]   # add careerlink once search_urls is set. fixtures | jobspy | hoteljob | careerlink | jobbkk | jobthai
+  enabled: [jobspy, hoteljob, jobbkk, jobthai, jobtopgun]   # add careerlink once search_urls is set. fixtures | jobspy | hoteljob | careerlink | jobbkk | jobthai | jobtopgun
   fixtures:
     path: tests/fixtures/jobs.json
 
 jobspy:
-  sites: [linkedin, indeed]     # Glassdoor does not support Thailand
+  sites: [indeed]               # LinkedIn is off: it blocks GitHub's servers (429), and we do not use proxies. Glassdoor does not support Thailand
   location: Bangkok, Thailand
   results_wanted: 30            # per query, per site
   hours_old: 72                 # applied to LinkedIn by JobSpy, to Indeed by us (see source)
@@ -101,6 +101,10 @@ jobbkk:
 jobthai:
   max_pages: 1                  # 20 jobs per page per keyword
   keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, ภาษาจีน, front desk]   # Bangkok only (province id 01)
+
+jobtopgun:
+  max_pages: 4                  # 30 jobs per page per field; Bangkok-only and title-filtered before detail fetches
+  fields: [administration, customer-service, education, advertising-media, design-architecture]
 
 careerlink:                     # UNVERIFIED adapter: CareerLink blocks Claude's crawlers, so it was built blind
   max_jobs: 40
