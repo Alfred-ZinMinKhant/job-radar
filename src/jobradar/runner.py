@@ -1,11 +1,11 @@
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from . import db, notify
 from .scoring import apply_score
 from .sources import build_sources
-from .utils import now_iso
+from .utils import is_older_than, now_iso
 
 log = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ def run(cfg: dict, dry_run: bool = False, only: str | None = None, no_notify: bo
     conn = db.connect(Path(cfg["_root"]) / "data" / "jobs.db", in_memory_copy=dry_run)
     ncfg = cfg["notify"]
     scanned, failed = 0, []
+    cutoff = date.today() - timedelta(days=cfg["max_age_days"])
 
     for src in build_sources(cfg, only):
         try:
@@ -25,6 +26,7 @@ def run(cfg: dict, dry_run: bool = False, only: str | None = None, no_notify: bo
             failed.append(src.name)
             db.record_run(conn, src.name, False, 0, f"{type(e).__name__}: {e}"[:500], ts)
             continue
+        jobs = [j for j in jobs if not is_older_than(j.posted_at, cutoff)]  # undated postings are kept
         for job in jobs:
             apply_score(job, cfg)
             db.upsert_job(conn, job, ts)
@@ -33,11 +35,11 @@ def run(cfg: dict, dry_run: bool = False, only: str | None = None, no_notify: bo
         db.record_run(conn, src.name, True, len(jobs), None, ts)
         db.mark_expired(conn, src.name)
 
-    pending = db.pending_notifications(conn, ncfg["min_score"], ncfg["top_n"])
+    pending = db.pending_notifications(conn, ncfg["min_score"], ncfg["top_n"], cutoff.isoformat())
     tries = []
     if ncfg["worth_a_try"]["enabled"]:
         tries = db.pending_worth_a_try(conn, ncfg["worth_a_try"]["min_score"],
-                                       ncfg["min_score"], ncfg["worth_a_try"]["max"])
+                                       ncfg["min_score"], ncfg["worth_a_try"]["max"], cutoff.isoformat())
     messages: list[str] = []
     if pending or tries:
         messages = notify.build_digest(pending, scanned, failed, tries)

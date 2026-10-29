@@ -2,6 +2,9 @@
 
 # The personal `profile` section lives in config.local.yaml (gitignored) so this repo can be public.
 
+# Postings dated more than this many days ago are ignored, for every source. Undated postings are kept.
+max_age_days: 10
+
 notify:
   min_score: 30          # only jobs at or above this score are sent
   top_n: 25              # digest shows the best N

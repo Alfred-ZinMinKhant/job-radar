@@ -72,3 +72,22 @@ def test_worth_a_try_selection(tmp_path):
         db.upsert_job(c, j)
     got = db.pending_worth_a_try(c, 0, 30, 5)
     assert [j.url for j in got] == ["https://x.test/1"]
+
+
+def test_age_limit_drops_old_and_keeps_undated():
+    from datetime import date
+    from jobradar.utils import is_older_than
+    cutoff = date(2026, 10, 19)
+    assert is_older_than("2026-10-18", cutoff) and not is_older_than("2026-10-19", cutoff)
+    assert not is_older_than(None, cutoff) and not is_older_than("sometime", cutoff)
+
+
+def test_pending_queries_skip_old_but_keep_undated_and_odd_dates():
+    c = db.connect(":memory:")
+    for i, posted in enumerate(["2026-10-01", "2026-10-25", None, "yesterday"]):
+        j = Job(source="x", url=f"https://x/{i}", title="Receptionist", posted_at=posted)
+        j.score = 50
+        db.upsert_job(c, j, "2026-10-29T00:00:00+00:00")
+    got = {j.posted_at for j in db.pending_notifications(c, 30, 25, "2026-10-19")}
+    assert got == {"2026-10-25", None, "yesterday"}
+    assert len(db.pending_notifications(c, 30, 25)) == 4

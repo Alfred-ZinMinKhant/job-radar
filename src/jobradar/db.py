@@ -54,10 +54,15 @@ def upsert_job(conn: sqlite3.Connection, job: Job, ts: str | None = None) -> Non
          job.degree_flag))
 
 
-def pending_notifications(conn: sqlite3.Connection, min_score: int, limit: int) -> list[Job]:
+_FRESH = ("AND (posted_at IS NULL OR NOT posted_at GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*' "
+          "OR substr(posted_at,1,10) >= ?) ")
+
+
+def pending_notifications(conn: sqlite3.Connection, min_score: int, limit: int, min_posted: str | None = None) -> list[Job]:
     rows = conn.execute(
-        "SELECT * FROM jobs WHERE notified=0 AND expired=0 AND score>=? "
-        "ORDER BY score DESC, first_seen_at LIMIT ?", (min_score, limit)).fetchall()
+        "SELECT * FROM jobs WHERE notified=0 AND expired=0 AND score>=? " + (_FRESH if min_posted else "") +
+        "ORDER BY score DESC, first_seen_at LIMIT ?",
+        (min_score, *([min_posted] if min_posted else []), limit)).fetchall()
     return [_row_to_job(r) for r in rows]
 
 
@@ -69,11 +74,12 @@ def _row_to_job(r: sqlite3.Row) -> Job:
                reasons=json.loads(r["reasons"] or "[]"), degree_flag=r["degree_flag"])
 
 
-def pending_worth_a_try(conn: sqlite3.Connection, floor: int, below: int, limit: int) -> list[Job]:
+def pending_worth_a_try(conn: sqlite3.Connection, floor: int, below: int, limit: int, min_posted: str | None = None) -> list[Job]:
     """Un-notified jobs under the main threshold whose role/language fits but which lost
     points only for degree/experience (no nationality or seniority problem)."""
-    rows = conn.execute("SELECT * FROM jobs WHERE notified=0 AND expired=0 AND score>=? AND score<? "
-                        "ORDER BY score DESC, first_seen_at", (floor, below)).fetchall()
+    rows = conn.execute("SELECT * FROM jobs WHERE notified=0 AND expired=0 AND score>=? AND score<? " +
+                        (_FRESH if min_posted else "") + "ORDER BY score DESC, first_seen_at",
+                        (floor, below, *([min_posted] if min_posted else []))).fetchall()
     out = []
     for j in map(_row_to_job, rows):
         r = " | ".join(j.reasons)

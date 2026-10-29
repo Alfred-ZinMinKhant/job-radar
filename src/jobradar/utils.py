@@ -71,3 +71,9 @@ def parse_relative(text: str | None, today: date | None = None) -> date | None:
         if re.search(pat, m.group(2), re.I):
             return today - timedelta(days=int(m.group(1)) * days)
     return None
+
+
+def is_older_than(posted_at: str | None, cutoff: date) -> bool:
+    """True only when posted_at parses to a date before cutoff; undated postings are kept."""
+    d = parse_date(posted_at)
+    return d is not None and d < cutoff
