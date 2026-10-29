@@ -28,7 +28,7 @@ scoring:
     terms: [chinese speaking, chinese-speaking, chinese language, mandarin, ภาษาจีน, แมนดาริน, 中文, 汉语, 华语]
   no_degree:
     points: 25
-    terms: [ไม่จำกัดวุฒิ, ม.6, มัธยม, ปวช, ปวส, diploma, high school, no degree]
+    terms: [ไม่จำกัดวุฒิ, ม.6, มัธยม, ปวช, ปวส, high school, high school diploma, vocational diploma, diploma level, no degree]
   degree_required:       # skipped when a no_degree term is also present
     points: -40
     terms: [bachelor, ปริญญาตรี, degree required]
