@@ -8,13 +8,15 @@
 name: job-radar
 on:
   schedule:
-    - cron: "30 1 * * *"   # 08:30 Asia/Bangkok (UTC+7)
+    # GitHub starts scheduled runs late (often by hours), so fire early at an
+    # off-peak minute and let the "Wait" step hold until 09:00 Asia/Bangkok.
+    - cron: "47 23 * * *"   # 06:47 Asia/Bangkok (UTC+7)
   workflow_dispatch:
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 240
     concurrency: job-radar
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +34,15 @@ jobs:
         env:
           CONFIG_LOCAL: ${{ secrets.CONFIG_LOCAL }}
         run: printf '%s' "$CONFIG_LOCAL" > config.local.yaml
+      - name: Wait until 09:00 Asia/Bangkok
+        if: github.event_name == 'schedule'
+        run: |
+          now=$(date +%s)
+          target=$(TZ=Asia/Bangkok date -d "today 09:00" +%s)
+          # started before 09:00 -> sleep; late runs go straight through
+          if [ "$now" -lt "$target" ] && [ $((target - now)) -le 14400 ]; then
+            sleep $((target - now))
+          fi
       - name: Run
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
