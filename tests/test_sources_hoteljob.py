@@ -34,16 +34,15 @@ def _score(cfg, detail_file, card_idx):
     return job, score_job(job, cfg, TODAY)
 
 
-def test_yotel_scores_positive_with_experience_reduction(cfg):
+def test_yotel_night_shift_is_excluded(cfg):
     job, r = _score(cfg, "hoteljob_detail_yotel.html", 0)
     assert job.closes_at == "28 พฤศจิกายน 2569" and "Front Office Crew" in job.title
-    assert r.degree_flag == "not_required" and r.score >= 30
-    assert any("experience 1 year" in x for x in r.reasons)
+    assert r.excluded and "shift past 10 PM" in r.reasons[0]
 
 
-def test_hyatt_degree_penalty_lands_in_worth_a_try_range(cfg):
+def test_hyatt_degree_penalty_is_mild(cfg):
     _, r = _score(cfg, "hoteljob_detail_hyatt.html", 1)
-    assert r.degree_flag == "required" and r.score < 30
+    assert r.degree_flag == "required" and not r.excluded
     assert any("degree required" in x for x in r.reasons)
 
 

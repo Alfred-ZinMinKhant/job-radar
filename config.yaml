@@ -19,7 +19,7 @@ scoring:
 
   target_role:           # matched against the TITLE only
     points: 30
-    terms: [receptionist, front desk, front office, guest service, guest relations,
+    terms: [flight attendant, cabin crew, air hostess, airline steward, air steward, stewardess, แอร์โฮสเตส, สจ๊วต, receptionist, front desk, front office, guest service, guest relations,
             customer service, customer support, customer care, admin assistant,
             ผู้ช่วยธุรการ, ธุรการ, พนักงานต้อนรับ, ฝ่ายบริการลูกค้า, ผู้ช่วยครู,
             learning support, teaching assistant, ต้อนรับ, ส่วนหน้า]
@@ -37,7 +37,7 @@ scoring:
     points: -100
     terms: [master's degree, masters degree, master degree, master of, mba, ปริญญาโท, phd, doctorate, doctoral]
   degree_required:       # skipped when a no_degree term is also present; many employers bend on a bachelor's
-    points: -20
+    points: -10
     terms: [bachelor, ปริญญาตรี, degree required]
   degree_equivalent:     # replaces degree_required when present
     points: -10
@@ -65,6 +65,11 @@ scoring:
   seniority:             # matched against the TITLE only
     points: -50
     terms: [manager, supervisor, head, director, senior, team lead, team leader, หัวหน้า, ผู้จัดการ]
+  unwanted_role:         # bar/restaurant roles, matched against the TITLE only; excludes the job (airline cabin crew is fine)
+    terms: [waiter, waitress, hostess, bartender, bar, bar staff, พนักงานเสิร์ฟ, เด็กเสิร์ฟ, บาร์เทนเดอร์, ผู้หญิงนั่งดริ๊ง]
+    except: [air hostess, airline, flight attendant, cabin crew, แอร์โฮสเตส]   # titles with these are never excluded here
+  late_shift:            # anywhere in the posting; excludes the job (she does not work past 10 PM)
+    terms: [night shift, night audit, night auditor, overnight, graveyard, late shift, กะดึก, กลางคืน, 24 hours shift, 24-hour shift]
   nationality_mismatch:
     points: -100
     terms: [burmese nationality, myanmar nationality, สัญชาติพม่า]
@@ -98,6 +103,9 @@ jobspy:
     - พนักงานต้อนรับ
     - ภาษาพม่า
     - teaching assistant
+    - flight attendant
+    - cabin crew
+    - แอร์โฮสเตส
 
 hoteljob:
   max_pages: 5                  # /bangkok/ pages, 20 jobs each, newest first
@@ -105,11 +113,11 @@ hoteljob:
 
 jobbkk:
   max_pages: 1                  # 25 jobs per page per keyword
-  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, front desk]   # Bangkok only (in the URL)
+  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, front desk, แอร์โฮสเตส, สจ๊วต]   # Bangkok only (in the URL)
 
 jobthai:
   max_pages: 1                  # 20 jobs per page per keyword
-  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, front desk]   # Bangkok only (province id 01)
+  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, front desk, แอร์โฮสเตส, สจ๊วต]   # Bangkok only (province id 01)
 
 jobtopgun:
   max_pages: 4                  # 30 jobs per page per field; Bangkok-only and title-filtered before detail fetches

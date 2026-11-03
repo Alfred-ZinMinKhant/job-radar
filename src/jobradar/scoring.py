@@ -48,6 +48,10 @@ def required_years(text: str) -> int | None:
     return max(lows) if lows else None
 
 
+# a shift range ending at 22:00-23:59 / 10-11 pm, e.g. "14:00-22:00", "2pm - 11pm", "ถึง 23.00"
+_LATE_END = re.compile(r"(?:[-–—~]|\bto\b|ถึง|-)\s*(?:(?:22|23)\s*[:.]\s*[0-5]\d|(?:10|11)(?:\s*[:.]\s*[0-5]\d)?\s*(?:p\.?m\b))")
+
+
 def _segments(text: str) -> list[str]:
     return re.split(r"[\n;|•]|\.\s", text)
 
@@ -91,6 +95,12 @@ def score_job(job: Job, cfg: dict, today: date | None = None) -> ScoreResult:
     if closed_hit or (closes and closes < today):
         why = f"closed: {closed_hit}" if closed_hit else f"closed on {closes}"
         return ScoreResult(0, [why], excluded=True)
+
+    if (t := find_term(s["unwanted_role"]["terms"], title)) and not find_term(s["unwanted_role"]["except"], title):
+        return ScoreResult(0, [f"unwanted role: {t}"], excluded=True)
+    late = find_term(s["late_shift"]["terms"], text) or (m.group(0) if (m := _LATE_END.search(text)) else None)
+    if late:
+        return ScoreResult(0, [f"shift past 10 PM: {late}"], excluded=True)
 
     if (t := find_term(s["target_role"]["terms"], title)):
         add("target_role", f"title: {t}")

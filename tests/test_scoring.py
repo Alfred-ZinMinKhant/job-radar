@@ -25,8 +25,8 @@ RULES = [
     ("no_degree thai", "Clerk", "ไม่จำกัดวุฒิการศึกษา", "+25 no degree needed"),
     ("no_degree m6", "Clerk", "วุฒิ ม.6 ขึ้นไป", "+25 no degree needed: ม.6"),
     ("no_degree en", "Clerk", "High school graduates welcome", "+25 no degree needed"),
-    ("degree_required", "Clerk", "Bachelor's degree in any major", "-20 degree required"),
-    ("degree_required thai", "Clerk", "ปริญญาตรีขึ้นไป", "-20 degree required"),
+    ("degree_required", "Clerk", "Bachelor's degree in any major", "-10 degree required"),
+    ("degree_required thai", "Clerk", "ปริญญาตรีขึ้นไป", "-10 degree required"),
     ("postgrad", "Clerk", "Master's degree in business", "-100 postgraduate degree required"),
     ("postgrad thai", "Clerk", "ปริญญาโทขึ้นไป", "-100 postgraduate degree required"),
     ("degree_equivalent", "Clerk", "Bachelor or equivalent experience", "-10 degree 'or equivalent'"),
@@ -77,7 +77,7 @@ def test_nationality_not_counted_as_burmese_language(cfg):
 
 def test_no_degree_beats_degree_mention(cfg):
     r = S(cfg, "Clerk", "ม.6 ขึ้นไป or bachelor")
-    assert r.degree_flag == "not_required" and not any("-20" in x for x in r.reasons)
+    assert r.degree_flag == "not_required" and not any("-10" in x for x in r.reasons)
 
 
 def test_age_not_read_as_experience():
@@ -98,15 +98,43 @@ def _fx(cfg):
     return {j.title: score_job(j, cfg, TODAY) for j in FixtureSource(root / "tests/fixtures/jobs.json").fetch()}
 
 
-def test_example_yotel(cfg):
+def test_example_yotel_night_shift_excluded(cfg):
     r = _fx(cfg)["Front Office Crew (Night Shift)"]
-    assert r.score >= 30 and r.degree_flag == "not_required"
-    assert any("experience 1 year" in x for x in r.reasons)
+    assert r.excluded and "shift past 10 PM" in r.reasons[0]
+
+
+@pytest.mark.parametrize("title,desc", [
+    ("Waiter", ""), ("Hostess", ""), ("Restaurant Hostess", ""), ("Bar Staff", ""), ("พนักงานเสิร์ฟ", ""),
+])
+def test_unwanted_roles_excluded(cfg, title, desc):
+    assert S(cfg, title, desc).excluded
+
+
+@pytest.mark.parametrize("desc", [
+    "Night audit duties", "ทำงานกะดึก", "Hours 14:00-22:00", "Shift 2pm - 11pm", "เวลา 15.00 ถึง 23.00",
+])
+def test_late_shift_excluded(cfg, desc):
+    assert S(cfg, "Receptionist", desc).excluded
+
+
+@pytest.mark.parametrize("title", ["Flight Attendant", "Cabin Crew", "Air Hostess", "แอร์โฮสเตส", "Airline Steward"])
+def test_airline_cabin_roles_wanted(cfg, title):
+    r = S(cfg, title, "Day shift")
+    assert not r.excluded and any(x.startswith("+30") for x in r.reasons)
+
+
+def test_barista_allowed(cfg):
+    assert not S(cfg, "Barista", "Day shift").excluded
+
+
+@pytest.mark.parametrize("desc", ["Hours 09:00-18:00", "Shift 8am - 5pm", "Mon-Fri 10:00-19:00"])
+def test_day_shift_kept(cfg, desc):
+    assert not S(cfg, "Receptionist", desc).excluded
 
 
 def test_example_hyatt(cfg):
     r = _fx(cfg)["Guest Service Officer, Front Office"]
-    assert r.degree_flag == "required" and r.score < 30
+    assert r.degree_flag == "required" and r.score >= 30  # bachelor's is only a mild penalty now
 
 
 def test_example_burmese_sales(cfg):
@@ -127,4 +155,4 @@ def test_example_beauty(cfg):
 
 def test_soft_wording_only_applies_in_same_sentence(cfg):
     r = S(cfg, "Clerk", "Bachelor's degree required. Training provided")
-    assert any(x.startswith("-20") for x in r.reasons)
+    assert any(x.startswith("-10") for x in r.reasons)
