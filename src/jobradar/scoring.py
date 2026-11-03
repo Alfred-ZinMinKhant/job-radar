@@ -112,8 +112,12 @@ def score_job(job: Job, cfg: dict, today: date | None = None) -> ScoreResult:
     no_deg = find_term(s["no_degree"]["terms"], text)
     deg_req = find_term(s["degree_required"]["terms"], text)
     equiv = find_term(s["degree_equivalent"]["terms"], text)
+    postgrad = find_term(s["degree_postgrad"]["terms"], text)
     flag = "none_mentioned"
-    if no_deg:
+    if postgrad and not is_soft(s["degree_postgrad"]["terms"], soft, text):
+        add("degree_postgrad", f"postgraduate degree required: {postgrad}")
+        flag = "required"
+    elif no_deg:
         add("no_degree", f"no degree needed: {no_deg}")
         flag = "not_required"
     elif deg_req and equiv:
@@ -133,7 +137,7 @@ def score_job(job: Job, cfg: dict, today: date | None = None) -> ScoreResult:
     if entry:
         add("entry_level", f"entry level: {entry}")
     years = required_years(text)
-    exp_soft = is_soft(list(_EXP_WORDS), soft, text)
+    exp_soft = is_soft(list(_EXP_WORDS), soft, text) or bool(find_term(s["training_provided"]["terms"], text))
     if years is not None and years >= s["experience_2plus"]["min_years"] and exp_soft:
         add("soft_requirement", f"experience {years}+ years preferred, not required")
     elif years is not None and years >= s["experience_2plus"]["min_years"]:

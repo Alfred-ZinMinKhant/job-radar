@@ -26,14 +26,18 @@ scoring:
   burmese:
     points: 25
     terms: [burmese, myanmar language, ภาษาพม่า, ล่ามภาษาพม่า]
-  chinese:
-    points: 15
-    terms: [chinese speaking, chinese-speaking, chinese language, mandarin, ภาษาจีน, แมนดาริน, 中文, 汉语, 华语]
+  chinese:               # she does not want a Chinese-speaking workplace: heavy penalty pushes these below notify.min_score
+    points: -100
+    terms: [chinese speaking, chinese-speaking, chinese language, chinese speaker, chinese native,
+            mandarin, ภาษาจีน, แมนดาริน, 中文, 汉语, 华语]
   no_degree:
     points: 25
     terms: [ไม่จำกัดวุฒิ, ม.6, มัธยม, ปวช, ปวส, high school diploma, high school graduate, high school or equivalent, vocational diploma, diploma level, no degree]
-  degree_required:       # skipped when a no_degree term is also present
-    points: -40
+  degree_postgrad:       # master's/doctorate: a real blocker, not negotiable like a bachelor's
+    points: -100
+    terms: [master's degree, masters degree, master degree, master of, mba, ปริญญาโท, phd, doctorate, doctoral]
+  degree_required:       # skipped when a no_degree term is also present; many employers bend on a bachelor's
+    points: -20
     terms: [bachelor, ปริญญาตรี, degree required]
   degree_equivalent:     # replaces degree_required when present
     points: -10
@@ -46,6 +50,10 @@ scoring:
     terms: [preferred, is a plus, an advantage, advantageous, not required, not necessary,
             training provided, will train, willing to learn, ไม่จำเป็น, มีอบรม, สอนงาน,
             จะพิจารณาเป็นพิเศษ, ยินดีรับ]
+  training_provided:     # anywhere in the posting: experience becomes a soft requirement (soft_requirement points)
+    terms: [training provided, training is provided, training will be provided, will be trained,
+            will train, we will train, full training, on-the-job training, on the job training,
+            willing to learn, ready to learn, มีอบรม, มีการอบรม, อบรมให้, ฝึกอบรมให้, สอนงาน, มีเทรนนิ่ง, เทรนให้]
   experience_2plus:      # 2+ years stated near an "experience" word
     points: -30
     min_years: 2
@@ -89,8 +97,6 @@ jobspy:
     - ผู้ช่วยธุรการ
     - พนักงานต้อนรับ
     - ภาษาพม่า
-    - Chinese speaking receptionist
-    - ภาษาจีน
     - teaching assistant
 
 hoteljob:
@@ -99,11 +105,11 @@ hoteljob:
 
 jobbkk:
   max_pages: 1                  # 25 jobs per page per keyword
-  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, ภาษาจีน, front desk]   # Bangkok only (in the URL)
+  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, front desk]   # Bangkok only (in the URL)
 
 jobthai:
   max_pages: 1                  # 20 jobs per page per keyword
-  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, ภาษาจีน, front desk]   # Bangkok only (province id 01)
+  keywords: [พนักงานต้อนรับ, ธุรการ, ลูกค้าสัมพันธ์, ภาษาพม่า, front desk]   # Bangkok only (province id 01)
 
 jobtopgun:
   max_pages: 4                  # 30 jobs per page per field; Bangkok-only and title-filtered before detail fetches

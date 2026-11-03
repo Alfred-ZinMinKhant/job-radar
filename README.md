@@ -77,12 +77,12 @@ Never commit tokens. Check `git status` before the first push.
 ## Tuning the scoring
 
 Everything is in `config.yaml` under `scoring`: terms and points for target
-roles, languages (Burmese, Chinese), degree and experience requirements,
+roles, languages (Burmese wanted; Chinese penalised), degree and experience requirements,
 seniority, nationality, and salary. Examples:
 
 - Raise `notify.min_score` for a shorter digest, lower it for a longer one.
 - Add a job title to `scoring.target_role.terms` to treat it as a target role.
-- Add a language wish to `scoring.chinese.terms` (or Burmese) to match it.
+- Add a language to `scoring.burmese.terms` to reward it; `scoring.chinese.terms` is a penalty (Chinese-speaking workplaces are unwanted).
 - A degree or experience mention in the same sentence as soft wording
   ("preferred", "will train", "ไม่จำเป็น") gets a small penalty instead of the
   full one. Edit `scoring.soft_requirement.terms` to change that.
